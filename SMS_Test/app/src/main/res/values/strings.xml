@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SMS Test</string>
+
+    <string name="txt_phoneNum">Phone Number</string>
+    <string name="txt_message">Message</string>
+    <string name="btn_sendSms">Send SMS</string>
+</resources>
