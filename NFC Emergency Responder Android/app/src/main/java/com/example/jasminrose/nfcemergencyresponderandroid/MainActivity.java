@@ -1,36 +1,53 @@
 package com.example.jasminrose.nfcemergencyresponderandroid;
 
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
-import android.nfc.Tag;
 import android.os.Parcelable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     NfcAdapter nfcAdapter;
     PendingIntent pendingIntent;
-    Tag mytag;
-    Context context;
-    TextView txt_nfc_serial, txt_firstname;
     IntentFilter[] intentFiltersArray;
+
+    TextView txtUserId, txtFullName;
+    ListView listContact;
+    ConstraintLayout nfcApproach;
+    LinearLayout nfcDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        txt_nfc_serial = findViewById(R.id.txt_nfc_serial);
-        txt_firstname = findViewById(R.id.txt_firstname);
+        nfcApproach = findViewById(R.id.layout_nfc_approach);
+        nfcDetails = findViewById(R.id.layout_nfc_details);
+
+        txtUserId = findViewById(R.id.txt_userid);
+        txtFullName = findViewById(R.id.txt_fullname);
+
+        listContact = findViewById(R.id.list_contact);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
@@ -57,17 +74,20 @@ public class MainActivity extends AppCompatActivity {
             nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, null);
     }
 
+    /*
     @Override
     protected void onPause() {
         super.onPause();
         if(nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
-    }
+    }*/
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         readFromIntent(intent);
+        nfcApproach.setVisibility(View.INVISIBLE);
+        nfcDetails.setVisibility(View.VISIBLE);
     }
 
 
@@ -88,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 hexdump += x + ' ';
             }
 
-            txt_nfc_serial.setText(hexdump);
+            txtUserId.setText(hexdump.toUpperCase().trim());
 
             Parcelable[] rawMessges = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
             NdefMessage[] messages = null;
@@ -105,14 +125,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void buildTagViews(NdefMessage[] messages) {
-        StringBuilder records = new StringBuilder();
+        txtFullName.setText(returnTextRecord(messages, 0));
+        List<Map<String, String>> records = new ArrayList<>();
+        String r;
 
-        for(int i=0; i<messages[0].getRecords().length; i++) {
-            records.append(returnTextRecord(messages, i)).append("\n");
+        for(int i=1; i<messages[0].getRecords().length; i++) {
+            byte[] type = messages[0].getRecords()[i].getType();
+            Log.i("typendef", type.toString());
+            if(Arrays.equals(type,NdefRecord.RTD_TEXT)) {
+                r = returnTextRecord(messages, i);
+                Log.i("contactName", r);
+                Map<String, String> record = new HashMap<>();
+                record.put("name", r.substring(0, r.indexOf('-')));
+                record.put("number", r.substring(r.indexOf('-') + 1));
+                records.add(record);
+            }
         }
 
-        txt_firstname.setText(records.toString());
-
+        SimpleAdapter adapter = new SimpleAdapter(this, records,
+                                                    android.R.layout.simple_list_item_2,
+                                                    new String[] {"name", "number"},
+                                                    new int[] {android.R.id.text1, android.R.id.text2});
+        listContact.setAdapter(adapter);
         Toast.makeText(this, "Successfully read tag.", Toast.LENGTH_SHORT).show();
     }
 

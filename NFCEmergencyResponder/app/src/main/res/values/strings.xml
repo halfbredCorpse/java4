@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Emergency</string>
     <string name="user_id">User ID</string>
-    <string name="username">Username</string>
+    <string name="full_name">Full Name</string>
     <string name="send">Send</string>
     <string name="update_databases">Update Databases</string>
     <string name="export_record">Export Record</string>
