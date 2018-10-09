@@ -3,6 +3,7 @@ package com.example.jasminrose.nfcemergencyresponderandroid;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
@@ -41,12 +42,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Label TextViews
         nfcApproach = findViewById(R.id.layout_nfc_approach);
         nfcDetails = findViewById(R.id.layout_nfc_details);
 
+        //Value TextViews
         txtUserId = findViewById(R.id.txt_userid);
         txtFullName = findViewById(R.id.txt_fullname);
 
+        //ListView for emergency contact numbers associated with users
         listContact = findViewById(R.id.list_contact);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -76,13 +80,12 @@ public class MainActivity extends AppCompatActivity {
             nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, null);
     }
 
-    /*
     @Override
     protected void onPause() {
         super.onPause();
         if (nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
-    }*/
+    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -134,22 +137,31 @@ public class MainActivity extends AppCompatActivity {
         for(int i=1; i<messages[0].getRecords().length; i++) {
             byte[] type = messages[0].getRecords()[i].getType();
             Log.i("typendef", type.toString());
+
             if(Arrays.equals(type,NdefRecord.RTD_TEXT)) {
                 r = returnTextRecord(messages, i);
                 Log.i("contactName", r);
+
+                //To be put in the listview
                 Map<String, String> record = new HashMap<>();
                 record.put("name", r.substring(0, r.indexOf('-')));
                 record.put("number", r.substring(r.indexOf('-') + 1));
+
+                //SMS Message to be sent to emergency numbers
+                String txt = "Hi " + record.get("name") +". This text message is to inform that "
+                                + txtFullName.getText() + " is in an emergency!";
+                new TextMessage(this, record.get("number"), txt).sendSms();
+
                 records.add(record);
             }
         }
 
+        //Adapter to Emergency Contact Listview
         SimpleAdapter adapter = new SimpleAdapter(this, records,
                                                     android.R.layout.simple_list_item_2,
                                                     new String[] {"name", "number"},
                                                     new int[] {android.R.id.text1, android.R.id.text2});
         listContact.setAdapter(adapter);
-        Toast.makeText(this, "Successfully read tag.", Toast.LENGTH_SHORT).show();
     }
 
     public String returnTextRecord(NdefMessage[] messages, int recordIndex) {
