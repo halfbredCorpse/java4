@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (!nfcAdapter.isEnabled())
             Toast.makeText(this, "NFC is disabled", Toast.LENGTH_LONG);
+
+        readFromIntent(getIntent());
     }
 
     @Override
@@ -67,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         pendingIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
-        intentFiltersArray = new IntentFilter[] {tagDetected};
+        IntentFilter techDetected = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
+        intentFiltersArray = new IntentFilter[] {tagDetected, techDetected};
 
         if(nfcAdapter != null)
             nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, null);
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(nfcAdapter != null)
+        if (nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
     }*/
 
