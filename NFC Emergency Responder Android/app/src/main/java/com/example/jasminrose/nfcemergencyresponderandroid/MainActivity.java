@@ -27,11 +27,12 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-
+    //NFC
     NfcAdapter nfcAdapter;
     PendingIntent pendingIntent;
     IntentFilter[] intentFiltersArray;
 
+    //Layout, views
     TextView txtUserId, txtFullName;
     ListView listContact;
     ConstraintLayout nfcApproach;
@@ -63,6 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (!nfcAdapter.isEnabled())
             Toast.makeText(this, "NFC is disabled", Toast.LENGTH_LONG);
+
+
+        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(getIntent().getAction()) || NfcAdapter.ACTION_TECH_DISCOVERED.equals(getIntent().getAction()) ||
+                NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())){
+            nfcApproach.setVisibility(View.INVISIBLE);
+            nfcDetails.setVisibility(View.VISIBLE);
+        }
 
         readFromIntent(getIntent());
     }
