@@ -8,6 +8,7 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +19,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.maps.MapView;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -38,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     ConstraintLayout nfcApproach;
     LinearLayout nfcDetails;
 
+    MapView mapView;
+    MapViewLocation mapViewLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
 
         //ListView for emergency contact numbers associated with users
         listContact = findViewById(R.id.list_contact);
+
+        mapView = findViewById(R.id.mapView);
+        mapViewLocation = new MapViewLocation(this, mapView);
+        mapViewLocation.onCreate();
+        mapView.onCreate(savedInstanceState);
+
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
@@ -76,13 +89,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        mapViewLocation.onStart();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        mapView.onResume();
+
         pendingIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        IntentFilter techDetected = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
-        intentFiltersArray = new IntentFilter[] {tagDetected, techDetected};
+        intentFiltersArray = new IntentFilter[] {new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED), new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
 
         if(nfcAdapter != null)
             nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, null);
@@ -91,18 +110,49 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        mapView.onPause();
+
         if (nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapViewLocation.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         readFromIntent(intent);
+
         nfcApproach.setVisibility(View.INVISIBLE);
         nfcDetails.setVisibility(View.VISIBLE);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        mapViewLocation.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
 
     private void readFromIntent(Intent intent) {
         String action = intent.getAction();
@@ -155,10 +205,19 @@ public class MainActivity extends AppCompatActivity {
                 record.put("name", r.substring(0, r.indexOf('-')));
                 record.put("number", r.substring(r.indexOf('-') + 1));
 
+                String location = mapViewLocation.getLocationName();
+
                 //SMS Message to be sent to emergency numbers
                 String txt = "Hi " + record.get("name") +". This text message is to inform that "
                                 + txtFullName.getText() + " is in an emergency!";
-                new TextMessage(this, record.get("number"), txt).sendSms();
+
+                String txt2 = "He/she is currently located in " + location + ".";
+
+
+                TextMessage txtmessage = new TextMessage(this, record.get("number"), txt);
+                txtmessage.sendSms();
+                txtmessage.setMessage(txt2);
+                txtmessage.sendSms();
 
                 records.add(record);
             }
