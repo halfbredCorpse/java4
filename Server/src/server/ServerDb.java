@@ -12,11 +12,17 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
+import java.util.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ServerDb extends javax.swing.JFrame {
     static boolean accepting;
@@ -40,7 +46,7 @@ public class ServerDb extends javax.swing.JFrame {
     static String DB_URL = "jdbc:mysql://localhost:3306/server_db",
                   DB_UN = "root",
                   DB_PW = "",
-                  DB_SQL_UPDATE = "INSERT INTO remote_records (User_Id, Date_Time) VALUES (?,?)",
+                  DB_SQL_UPDATE = "INSERT INTO remote_records (User_Id, Date_Time, Location) VALUES (?,?,?)",
                   DB_SQL_RETRIEVE_CONTACTS = "SELECT * FROM remote_contacts",
                   DB_SQL_RETRIEVE_USERS = "SELECT * FROM remote_users",
                   DB_SQL_RETRIEVE_RECORDS = "SECLECT * FROM remote_records",
@@ -224,8 +230,10 @@ public class ServerDb extends javax.swing.JFrame {
     }
     
     private static void updateServerDb() {
-        String message = "",
-               entry[];
+        String message, entry[];
+        SimpleDateFormat dateFormat;
+        Date parsedDate;
+        Timestamp timeStamp;
         
         try {
             do {
@@ -235,22 +243,28 @@ public class ServerDb extends javax.swing.JFrame {
                 if (message.equals("0"))
                     break;
                 else {
+                    dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+                    parsedDate = dateFormat.parse(entry[1]);
+                    timeStamp = new java.sql.Timestamp(parsedDate.getTime());
+                    
                     Class.forName("com.mysql.jdbc.Driver");
                     connect = DriverManager.getConnection(DB_URL, DB_URL, DB_PW);
                     prepStatement = connect.prepareStatement(DB_SQL_UPDATE);
                     prepStatement.setString(1, entry[0]);
-                    prepStatement.setString(2, entry[1]);
+                    prepStatement.setTimestamp(2, timeStamp);
+                    prepStatement.setString(3, entry[2]);
                     prepStatement.executeUpdate();
                 }
             } while (message.equals("0"));
         } catch (IOException | ClassNotFoundException | SQLException e) {
             e.printStackTrace(); 
+        } catch (ParseException ex) {
+            Logger.getLogger(ServerDb.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     private static void updateClientDb() {
-        String message,
-               entry[];
+        String message, entry[];
         
         try {
             do {
@@ -303,7 +317,7 @@ public class ServerDb extends javax.swing.JFrame {
             output.close();
             writer.close();
             
-        } catch(Exception e) {
+        } catch(IOException | ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
@@ -322,7 +336,7 @@ public class ServerDb extends javax.swing.JFrame {
             result = statement.executeQuery(DB_SQL_RETRIEVE_RECORDS);
 
             while (result.next()) {
-                message = result.getString("User_Id") + "," + result.getDate("Date_Time").toString() + "\n";
+                message = result.getString("User_Id") + "," + result.getDate("Date_Time").toString() + ","  + result.getString("Location") + "\n";
                 printer.print(message);
             }
 
@@ -358,7 +372,7 @@ public class ServerDb extends javax.swing.JFrame {
             writer = new BufferedWriter(output);
             
             while (result.next()) {
-                message = result.getString("User_Id") + "," + result.getDate("Date_Time").toString() + "\n";
+                message = result.getString("User_Id") + "," + result.getDate("Date_Time").toString() + "," + result.getString("Location") + "\n";
                 writer.write(message);
                 writer.flush();
             }
