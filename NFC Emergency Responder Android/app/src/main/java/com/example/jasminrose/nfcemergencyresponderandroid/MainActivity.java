@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
             nfcDetails.setVisibility(View.VISIBLE);
         }
 
-        readFromIntent(getIntent());
+        //readFromIntent(getIntent());
     }
 
     @Override
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         mapViewLocation.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    private void readFromIntent(Intent intent) {
+    public void readFromIntent(Intent intent) {
         String action = intent.getAction();
 
         if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action) || NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) ||

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.nfc.NfcAdapter;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -115,8 +116,8 @@ public class MapViewLocation implements OnMapReadyCallback, LocationEngineListen
         locationLayerPlugin.setRenderMode(RenderMode.NORMAL);
     }
 
-    void setCamerpostion(Location camerpostion) {
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(camerpostion.getLatitude(), camerpostion.getLongitude()), 50.0));
+    public void setCamerpostion(Location camerpostion) {
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(camerpostion.getLatitude(), camerpostion.getLongitude()), 17.0));
     }
 
     public void getCurrentLocationAddress(Location position) {
@@ -135,6 +136,11 @@ public class MapViewLocation implements OnMapReadyCallback, LocationEngineListen
                     CarmenFeature feature = results.get(0);
                     Toast.makeText(context, feature.placeName(), Toast.LENGTH_SHORT).show();
                     locationName = feature.placeName();
+
+                    MainActivity mainActivity = (MainActivity) context;
+                    mainActivity.readFromIntent(((MainActivity) context).getIntent());
+
+
                 } else {
                     Toast.makeText(context, "No results", Toast.LENGTH_SHORT).show();
                 }
