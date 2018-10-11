@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jasminrose.nfcemergencyresponderandroid.retrofit.entities.RetroRecord;
+import com.example.jasminrose.nfcemergencyresponderandroid.sqlite.SqliteDb;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
 
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     MapViewLocation mapViewLocation;
 
     RetrofitMethods retrofitMethods;
+    SqliteDb sqliteDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         mapView.onCreate(savedInstanceState);
 
         retrofitMethods = new RetrofitMethods(this);
+        sqliteDb = new SqliteDb(this);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
@@ -165,6 +168,15 @@ public class MainActivity extends AppCompatActivity {
         mapViewLocation.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    /**
+     *  Button to view emergency records
+     * */
+    public void viewRecordsOnClick(View view) {
+        Intent recordsActivity = new Intent(this, RecordsActivity.class);
+        recordsActivity.putExtra("userId", txtUserId.getText().toString());
+        startActivity(recordsActivity);
+    }
+
     public void readFromIntent(Intent intent) {
         String action = intent.getAction();
 
@@ -198,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("SimpleDateFormat")
     private void buildTagViews(NdefMessage[] messages) {
         txtFullName.setText(returnTextRecord(messages, 0));
         List<Map<String, String>> records = new ArrayList<>();
@@ -225,15 +236,18 @@ public class MainActivity extends AppCompatActivity {
 
                 String txt2 = "He/she is currently located in " + location + ".";
 
+
                 TextMessage txtmessage = new TextMessage(this, record.get("number"), txt);
                 txtmessage.sendSms();
                 txtmessage.setMessage(txt2);
                 txtmessage.sendSms();
 
+                sqliteDb.writeRecordToLocalDatabase(txtUserId.getText().toString(), location);
+                /*
                 retrofitMethods.createRecord(txtUserId.getText().toString(), new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()), location);
                 Log.i("dateInstance", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
-                //Toast.makeText(this, SimpleDateFormat.getDateTimeInstance().format(new Date()), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, SimpleDateFormat.getDateTimeInstance().format(new Date()), Toast.LENGTH_SHORT).show();*/
 
                 records.add(record);
             }

@@ -121,9 +121,10 @@
                 </LinearLayout>
 
                 <Button
-                    android:id="@+id/button4"
+                    android:id="@+id/btnViewRecords"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:onClick="viewRecordsOnClick"
                     android:text="View Emergency History" />
 
             </LinearLayout>
