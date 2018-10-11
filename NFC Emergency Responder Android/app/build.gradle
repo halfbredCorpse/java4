@@ -35,4 +35,5 @@ dependencies {
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.8.2'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-offline:0.2.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places:0.6.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
 }

@@ -1,5 +1,6 @@
 package com.example.jasminrose.nfcemergencyresponderandroid;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -20,12 +21,19 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.jasminrose.nfcemergencyresponderandroid.retrofit.entities.RetroRecord;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
 
 import java.io.UnsupportedEncodingException;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     MapView mapView;
     MapViewLocation mapViewLocation;
+
+    RetrofitMethods retrofitMethods;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         mapViewLocation.onCreate();
         mapView.onCreate(savedInstanceState);
 
+        retrofitMethods = new RetrofitMethods(this);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
@@ -187,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private void buildTagViews(NdefMessage[] messages) {
         txtFullName.setText(returnTextRecord(messages, 0));
         List<Map<String, String>> records = new ArrayList<>();
@@ -213,11 +225,15 @@ public class MainActivity extends AppCompatActivity {
 
                 String txt2 = "He/she is currently located in " + location + ".";
 
-
                 TextMessage txtmessage = new TextMessage(this, record.get("number"), txt);
                 txtmessage.sendSms();
                 txtmessage.setMessage(txt2);
                 txtmessage.sendSms();
+
+                retrofitMethods.createRecord(txtUserId.getText().toString(), new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()), location);
+                Log.i("dateInstance", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+
+                //Toast.makeText(this, SimpleDateFormat.getDateTimeInstance().format(new Date()), Toast.LENGTH_SHORT).show();
 
                 records.add(record);
             }
