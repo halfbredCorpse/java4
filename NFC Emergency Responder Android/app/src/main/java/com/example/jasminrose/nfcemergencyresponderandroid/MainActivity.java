@@ -243,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
                 txtmessage.sendSms();
 
                 sqliteDb.writeRecordToLocalDatabase(txtUserId.getText().toString(), location);
-                /*
                 retrofitMethods.createRecord(txtUserId.getText().toString(), new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()), location);
                 Log.i("dateInstance", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 

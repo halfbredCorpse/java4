@@ -23,7 +23,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="50dp"
             android:orientation="vertical"
-            android:visibility="visible"
+            android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -136,7 +136,7 @@
         android:id="@+id/layout_nfc_approach"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible">
+        android:visibility="visible">
 
         <ImageView
             android:id="@+id/imageView"
